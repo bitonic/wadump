@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "noFallthroughCasesInSwitch": true,
+    "noErrorTruncation": true,
+    "jsx": "react"
+  },
+}

@@ -1,0 +1,81 @@
+.chats {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  grid-template-rows: max-content minmax(0, 1fr);
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+}
+
+.chat-list {
+  grid-area: 1 / 1 / 3 / 2;
+  padding: 0.5rem;
+  overflow-y: scroll;
+  max-height: 100vh;
+}
+
+.chat-info {
+  grid-area: 1 / 2 / 2 / 3;
+  padding: 0.5rem;
+}
+
+.chat-messages {
+  grid-area: 2 / 2 / 3 / 3;
+  padding: 0.5rem;
+  max-height: 100%;
+  max-width: 100%;
+  overflow-y: auto;
+}
+
+.message {
+  padding: 0.10rem 0.25rem;
+  border-radius: 0.5rem;
+  margin: 0.25rem 0.10rem;
+  border: 0.1rem solid rgb(87, 87, 87);
+  box-shadow: 0.1rem 0.1rem rgb(87, 87, 87);
+  clear: both;
+}
+
+.message.their-message {
+  border-top-left-radius: 0;
+}
+
+.message.our-message {
+  border-top-right-radius: 0;
+  text-align: right;
+}
+
+.message .author {
+  float: right;
+  display: none;
+}
+
+.message .body {
+  clear: both;
+  display: block;
+}
+
+.message.our-message .body {
+  clear: both;
+}
+
+.message .time {
+  font-size: 0.75rem;
+}
+
+.message.our-message .time {
+  float: right;
+}
+
+.message.their-message .time {
+  float: left;
+}
+
+.message .clear {
+  clear: both;
+  display: block;
+}
+
+.message video, .message img {
+  max-width: 100%;
+}
