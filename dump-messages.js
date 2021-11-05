@@ -272,38 +272,51 @@
     return cleartext;
   }
 
+  // See <https://stackoverflow.com/a/9458996/524111>
+  function arrayBufferToBase64(buffer) {
+    let binary = "";
+    const bytes = new Uint8Array( buffer );
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+      binary += String.fromCharCode( bytes[ i ] );
+    }
+    return window.btoa(binary);
+  }
+
   // decrypt and decode a single message
   async function decryptMessage(config, mediaCache, { algorithm, key }, stats, messages, mediaBlobs, encodedMessage) {
-    if (encodedMessage.type === "chat") {
+    if (encodedMessage.msgRowOpaqueData) {
       const msgBytes = await crypto.subtle.decrypt(
         { ...algorithm, iv: encodedMessage.msgRowOpaqueData.iv },
         key,
         encodedMessage.msgRowOpaqueData._data,
       );  
-      let decoded = null;
-      try {
-        decoded = decodeWhatsAppProtobufMessage(msgBytes);
-      } catch (e) {
-        console.error(`could not decode message ${encodedMessage.id}`, e);
-        throw e;
+      delete encodedMessage.msgRowOpaqueData;  
+      encodedMessage.msgRowData = arrayBufferToBase64(msgBytes);
+      if (encodedMessage.type === "chat") {
+        let decoded = null;
+        try {
+          decoded = decodeWhatsAppProtobufMessage(msgBytes);
+        } catch (e) {
+          console.error(`could not decode message ${encodedMessage.id}`, e);
+          throw e;
+        }
+        encodedMessage.msgRow = decoded;
+      } else if (config.dumpMedia && isMediaMessage(encodedMessage.type)) {
+        let mediaBytes = null;
+        try {
+          mediaBytes = await downloadAndDecryptMedia(config, mediaCache, stats, encodedMessage);
+        } catch (e) {
+          console.error(`could not download and decrypt media for message ${encodedMessage.id}`, e);
+          throw e;
+        }
+        if (mediaBytes !== null) {
+          mediaBlobs[encodedMessage.filehash] = mediaBytes;
+        }
+      } else {
+        stats.unknownType.add(encodedMessage.id);
       }
-      encodedMessage.msgRow = decoded;
-    } else if (config.dumpMedia && isMediaMessage(encodedMessage.type)) {
-      let mediaBytes = null;
-      try {
-        mediaBytes = await downloadAndDecryptMedia(config, mediaCache, stats, encodedMessage);
-      } catch (e) {
-        console.error(`could not download and decrypt media for message ${encodedMessage.id}`, e);
-        throw e;
-      }
-      if (mediaBytes !== null) {
-        delete encodedMessage.msgRowOpaqueData;
-        mediaBlobs[encodedMessage.filehash] = mediaBytes;
-      }
-    } else {
-      stats.unknownType.add(encodedMessage.id);
     }
-    delete encodedMessage.msgRowOpaqueData;
     messages.push(encodedMessage);  
   }
 
@@ -352,31 +365,36 @@
     console.log("no decrypt args found, waiting for them (open a few chats!)");
     const objectStore = db.transaction("message").objectStore("message");
     objectStore.openCursor().onsuccess = (event) => {
-      const cursor = event.target.result;
-      const testData = cursor.value.msgRowOpaqueData;
-      const originalDecrypt = window.crypto.subtle.decrypt;
-      window.crypto.subtle.decrypt = function (algorithm, key, data) {
-        // try to decode
-        if (window.whatsappDecryptArgs === null) {
-          // eslint-disable-next-line @typescript-eslint/no-this-alias
-          const that = this;
-          (async () => {
-            try {
-              await originalDecrypt.call(that, { ...algorithm, iv: testData.iv }, key, testData._data);
-              // We've made it, store the key
-              if (window.whatsappDecryptArgs !== null) { return; } // somebody might have gotten there first, it's async
-              window.crypto.subtle.decrypt = originalDecrypt;
-              window.whatsappDecryptArgs = { algorithm: { ...algorithm }, key };
-              delete window.whatsappDecryptArgs.algorithm.iv;
-              console.log("decrypt args found", window.whatsappDecryptArgs);
-              withDecryptArgs(window.whatsappDecryptArgs);
-            } catch (e) {
-              console.debug("could not decode test data", e);
-            }
-          })();
-        }
-        return originalDecrypt.call(this, algorithm, key, data);
-      };
+      const message = event.target.result.value;
+      if (message.msgRowOpaqueData && message.type === "chat") {
+        const testData = message.msgRowOpaqueData;
+        const originalDecrypt = window.crypto.subtle.decrypt;
+        window.crypto.subtle.decrypt = function (algorithm, key, data) {
+          // try to decode
+          if (window.whatsappDecryptArgs === null) {
+            // eslint-disable-next-line @typescript-eslint/no-this-alias
+            const that = this;
+            (async () => {
+              try {
+                const msgBytes = await originalDecrypt.call(that, { ...algorithm, iv: testData.iv }, key, testData._data);
+                decodeWhatsAppProtobufMessage(msgBytes);
+                // We've made it, store the key
+                if (window.whatsappDecryptArgs !== null) { return; } // somebody might have gotten there first, it's async
+                window.crypto.subtle.decrypt = originalDecrypt;
+                window.whatsappDecryptArgs = { algorithm: { ...algorithm }, key };
+                delete window.whatsappDecryptArgs.algorithm.iv;
+                console.log("decrypt args found", window.whatsappDecryptArgs);
+                withDecryptArgs(window.whatsappDecryptArgs);
+              } catch (e) {
+                console.debug("could not decode test data", e);
+              }
+            })();
+          }
+          return originalDecrypt.call(this, algorithm, key, data);
+        };  
+      } else {
+        cursor.continue();
+      }
     };
   }
 
