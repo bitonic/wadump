@@ -421,7 +421,7 @@
 
   dumpWhatsApp({
     // Save media on top of text messages
-    dumpMedia: true,
+    dumpMedia: false,
     // Dump only media which is already cached locally. Only relevant if `dumpMedia` is
     // true.
     dumpOnlyCachedMedia: true,
