@@ -72,7 +72,7 @@ function extractWhatsAppData(tar: TarData): WhatsAppData {
   }
   data["media"] = {};
   const typedData = data as WhatsAppData;
-  for (const [hash, blob] of Object.entries(tar["media"])) {
+  for (const [hash, blob] of Object.entries(tar["media"] || [])) {
     typedData.media[hash.replace(/_/g, "/").replace(/-/g, "+") + "="] = blob;
   }
   const compareTimes = (t1: number | undefined, t2: number | undefined) => {
