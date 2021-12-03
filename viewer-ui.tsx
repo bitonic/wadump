@@ -67,6 +67,7 @@ const ChatMessage: React.FunctionComponent<{
   }
   const unexpected = (s: string) => <code className="text-danger fw-bold">{s}</code>;
   let messageBody: React.ReactNode = unexpected("unknown message type");
+  let quoteBody: undefined;
   if (message.filehash && message.mimetype) {
     const blob = media[message.filehash];
     if (blob) {
@@ -76,11 +77,15 @@ const ChatMessage: React.FunctionComponent<{
     }
   } else if (message.msgRow) {
     messageBody = message.msgRow.currentMsg.body;
+    if (message.quotedMsg && message.quotedMsg.type === "chat") {
+        quoteBody = ">>" + message.msgRow.quotedMsg.body;
+    }
   }
   return <div id={message.id} className={`message ${contact === null ? "our-message" : "their-message"} ${group ? "group-message" : ""}`}>
     {contactName !== null && <span className="author">{contactName}</span>}
     <span className="time">{renderTime(message.t)}</span>
     <span className="body">
+      <span className="quote">{quoteBody}</span>
       {messageBody}
     </span>
     <span className="clear" />

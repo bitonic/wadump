@@ -55,6 +55,11 @@
   display: block;
 }
 
+.message .quote {
+  clear: both;
+  display: block;
+}
+
 .message.our-message .body {
   clear: both;
 }

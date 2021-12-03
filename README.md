@@ -75,7 +75,7 @@ Once it's running, just go to the webpage, upload the `whatsapp.tar` file, and y
 
 * Everything is done in RAM, which means that all your messages and media need to fit in RAM. This would also be obviated if the script wrote directly to the filesystem.
 
-* We handle quoted messages quite poorly: we do not display them in the viewer, and we do not handle media in quoted messages.
+* We handle quoted messages incompletely: we display quoted text with >> as the prefix in the viewer, and we do not handle media in quoted messages.
 
 * We do not retrieve profile images.
 

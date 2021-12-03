@@ -44,6 +44,9 @@ interface Message {
   msgRow?: MessageRow;
   filehash?: string;
   mimetype?: string;
+  quotedMsg?: {
+    type: string;
+  }
 }
 
 interface WhatsAppData {
