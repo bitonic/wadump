@@ -393,7 +393,7 @@
           return originalDecrypt.call(this, algorithm, key, data);
         };  
       } else {
-        cursor.continue();
+        event.target.result.continue()
       }
     };
   }
