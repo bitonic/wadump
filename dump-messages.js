@@ -365,6 +365,7 @@
     console.log("no decrypt args found, waiting for them (open a few chats!)");
     const objectStore = db.transaction("message").objectStore("message");
     objectStore.openCursor().onsuccess = (event) => {
+      const cursor = event.target.result;
       const message = event.target.result.value;
       if (message.msgRowOpaqueData && message.type === "chat") {
         const testData = message.msgRowOpaqueData;
