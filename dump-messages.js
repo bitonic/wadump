@@ -46,7 +46,17 @@
         throw `non-specced field ${field}`;
       }
       let fieldValue = null;
-      if (wireType === 2) { // length-delimited
+      if (wireType === 1) { // fixed64, sfixed64, double
+        if (fieldSpec.type === "double") {
+          fieldValue = s.data.getFloat64(s.cursor, true); s.cursor += 8;
+        } else if (fieldSpec.type === "int64") {
+          fieldValue = s.data.getBigInt64(s.cursor, true); s.cursor += 8;
+        } else if (fieldSpec.type === "uint64") {
+          fieldValue = s.data.getBigUint64(s.cursor, true); s.cursor += 8;
+        } else {
+          throw `bad type for 64-bit data: ${fieldSpec.type}`;
+        }
+      } else if (wireType === 2) { // length-delimited
         const length = decodeVarint(s);
         if (fieldSpec.type === "string") {
           fieldValue = utf8Decoder.decode(new DataView(s.data.buffer, s.data.byteOffset + s.cursor, length));
@@ -61,6 +71,16 @@
         } else {
           throw `bad field type for length-delimited data ${JSON.stringify(fieldSpec.type)}`;
         }
+      } else if (wireType === 5) { // fixed32, sfixed32, float
+        if (fieldSpec.type === "float") {
+          fieldValue = s.data.getFloat32(s.cursor, true); s.cursor += 8;
+        } else if (fieldSpec.type === "int32") {
+          fieldValue = s.data.getInt32(s.cursor, true); s.cursor += 8;
+        } else if (fieldSpec.type === "uint32") {
+          fieldValue = s.data.getInt32(s.cursor, true); s.cursor += 8;
+        } else {
+          throw `bad type for 32-bit data: ${fieldSpec.type}`;
+        }        
       } else {
         throw `unimplemented wire type ${wireType}`;
       }
@@ -85,9 +105,8 @@
     const msgSpec = {
       1: { name: "body", type: "string" },
       3: { name: "caption", type: "string" },
-      // 4: { name: 'clientUrl', type: 'string' },
-      4: { name: "loc", type: "string" },
       5: { name: "lng", type: "double" },
+      6: { name: "isLive", type: "bool" },
       7: { name: "lat", type: "double" },
       8: { name: "paymentAmount1000", type: "int32" },
       9: { name: "paymentNoteMsgBody", type: "string" },
@@ -96,6 +115,15 @@
       12: { name: "title", type: "string" },
       13: { name: "description", type: "string" },
       14: { name: "futureproofBuffer", type: "bytes" },
+      15: { name: "clientUrl", type: "string" },
+      16: { name: "loc", type: "string" },
+      17: { name: "pollName", type: "string" },
+      // 18: { name: "pollOptions"}, not implemented, repeated messages
+      20: { name: "pollSelectableOptionsCount", type: "uint32" },
+      21: { name: "messageSecret", type: "bytes" },
+      22: { name: "senderTimestampMs", type: "int64" },
+      23: { name: "pollUpdateParentKey", type: "string" },
+      // 24: { name: "encPollVote" }, not implemented, repeated messages
     };
     const fullMsgSpec = {
       1: { name: "currentMsg", type: msgSpec },
