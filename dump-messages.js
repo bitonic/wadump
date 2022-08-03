@@ -73,11 +73,11 @@
         }
       } else if (wireType === 5) { // fixed32, sfixed32, float
         if (fieldSpec.type === "float") {
-          fieldValue = s.data.getFloat32(s.cursor, true); s.cursor += 8;
+          fieldValue = s.data.getFloat32(s.cursor, true); s.cursor += 4;
         } else if (fieldSpec.type === "int32") {
-          fieldValue = s.data.getInt32(s.cursor, true); s.cursor += 8;
+          fieldValue = s.data.getInt32(s.cursor, true); s.cursor += 4;
         } else if (fieldSpec.type === "uint32") {
-          fieldValue = s.data.getInt32(s.cursor, true); s.cursor += 8;
+          fieldValue = s.data.getInt32(s.cursor, true); s.cursor += 4;
         } else {
           throw `bad type for 32-bit data: ${fieldSpec.type}`;
         }        
