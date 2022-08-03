@@ -30,8 +30,8 @@
   }
 
   // protobuf message decoder. See `decodeWhatsAppProtobuf` message for example on
-  // the spec format. We currently only bother with strings, since I only encountered
-  // those so far.
+  // the spec format. We currently only bother with wire types encountered when
+  // decoding whatsapp messages.
   //
   // rule: we increase cursor _as soon as the data is consumed_.
   // cursor should always be at the byte we need to read next.
