@@ -46,7 +46,9 @@
         throw `non-specced field ${field}`;
       }
       let fieldValue = null;
-      if (wireType === 1) { // fixed64, sfixed64, double
+      if (wireType == 0) { // varint (int32, int64, uint32, uint64, sint32, sint64, bool, enum)
+        fieldValue = decodeVarint(s);
+      } else if (wireType === 1) { // fixed64, sfixed64, double
         if (fieldSpec.type === "double") {
           fieldValue = s.data.getFloat64(s.cursor, true); s.cursor += 8;
         } else if (fieldSpec.type === "int64") {
