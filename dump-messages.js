@@ -56,7 +56,7 @@
         } else if (fieldSpec.type === "uint64") {
           fieldValue = s.data.getBigUint64(s.cursor, true); s.cursor += 8;
         } else {
-          throw `bad type for 64-bit data: ${fieldSpec.type}`;
+          throw `bad type for 64-bit data: ${fieldSpec.name}, ${fieldSpec.type}`;
         }
       } else if (wireType === 2) { // length-delimited
         const length = decodeVarint(s);
@@ -71,7 +71,7 @@
           });
           s.cursor += length;
         } else {
-          throw `bad field type for length-delimited data ${JSON.stringify(fieldSpec.type)}`;
+          throw `bad field type for length-delimited data: ${fieldSpec.name}, ${JSON.stringify(fieldSpec.type)}`;
         }
       } else if (wireType === 5) { // fixed32, sfixed32, float
         if (fieldSpec.type === "float") {
@@ -81,7 +81,7 @@
         } else if (fieldSpec.type === "uint32") {
           fieldValue = s.data.getInt32(s.cursor, true); s.cursor += 4;
         } else {
-          throw `bad type for 32-bit data: ${fieldSpec.type}`;
+          throw `bad type for 32-bit data: ${fieldSpec.name}, ${fieldSpec.type}`;
         }        
       } else {
         throw `unimplemented wire type ${wireType}`;
